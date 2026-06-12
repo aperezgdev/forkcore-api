@@ -1,7 +1,7 @@
 ---
 name: feature-name
 tags: [feature, design, template]
-status: in-progress (draft, architectured, acceptance-ready, bdd-completed, in-progress, completed)
+status: in-progress (draft, user-waiting-approval, architectured, acceptance-ready, bdd-completed, in-progress, completed)
 date-created: 2024-06-01
 complexity: medium (low, medium, high)
 ---

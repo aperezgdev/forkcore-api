@@ -100,14 +100,27 @@ Requisitos:
 
 - Java 25
 - entorno compatible con Gradle Wrapper
-- PostgreSQL, si en siguientes iteraciones se configura persistencia real
+- Docker y Docker Compose plugin para levantar PostgreSQL localmente
 
 Comandos utiles:
 
 ```bash
+docker compose up -d
 ./gradlew test
 ./gradlew bootRun
 ```
+
+Variables de entorno esperadas por la API:
+
+- `SPRING_DATASOURCE_URL` (default `jdbc:postgresql://localhost:5432/forkcore`)
+- `SPRING_DATASOURCE_USERNAME` (default `forkcore`)
+- `SPRING_DATASOURCE_PASSWORD` (default `forkcore`)
+
+La base de datos local se versiona con Flyway y el fichero `compose.yaml` solo levanta PostgreSQL.
+
+Los tests de aceptacion usan Testcontainers para arrancar un PostgreSQL real durante la ejecucion.
+
+La API tambien incluye un `Dockerfile` multi-stage listo para generar una imagen de despliegue.
 
 Nota: el proyecto esta en una fase muy inicial y todavia no expone funcionalidad de negocio implementada.
 
@@ -248,14 +261,27 @@ Requirements:
 
 - Java 25
 - environment compatible with the Gradle Wrapper
-- PostgreSQL, once real persistence is configured in future iterations
+- Docker and the Docker Compose plugin to run PostgreSQL locally
 
 Useful commands:
 
 ```bash
+docker compose up -d
 ./gradlew test
 ./gradlew bootRun
 ```
+
+Environment variables expected by the API:
+
+- `SPRING_DATASOURCE_URL` (default `jdbc:postgresql://localhost:5432/forkcore`)
+- `SPRING_DATASOURCE_USERNAME` (default `forkcore`)
+- `SPRING_DATASOURCE_PASSWORD` (default `forkcore`)
+
+The local database schema is versioned with Flyway, and `compose.yaml` only starts PostgreSQL.
+
+Acceptance tests use Testcontainers to run a real PostgreSQL instance during execution.
+
+The API also includes a multi-stage `Dockerfile` ready for deployment image builds.
 
 Note: the project is still at a very early stage and does not yet expose implemented business functionality.
 

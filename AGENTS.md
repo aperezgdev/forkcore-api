@@ -6,24 +6,27 @@ This repository defines the global workflow and operating rules for the agents u
 
 `AGENTS.md` is the repository-wide contract. Files under `.agents/agents/` provide role-specific instructions and MUST be interpreted in a way that is consistent with this document.
 
+The recommended entry point for this workflow is the `orchestrator` agent. It is responsible for coordinating stage execution and workflow transitions. Specialist agents remain responsible for their own stage-specific work.
+
 ## Repository Scope
 
-This repository contains the API for a restaurant operations system.
+This repository is a workflow template.
 
 It currently defines:
 
 - agent roles
-- feature and architecture design artifacts
-- backend behavior for restaurant domain workflows such as orders, tables, dishes, and related operations
+- feature design templates
+- architecture design templates
 
 It does not currently define:
 
+- a production application stack
 - runtime commands
 - CI/CD automation
 - a canonical acceptance test directory
 - a canonical unit or integration test directory
 
-If a later-stage agent needs information that is not defined in this repository, it MUST inspect the codebase or ask the user.
+If a later-stage agent needs information that is not defined in this repository, it MUST inspect the consuming project or ask the user.
 
 ## Source Of Truth
 
@@ -39,7 +42,11 @@ If sources conflict, the agent MUST surface the conflict explicitly and ask the 
 
 ## Standard Workflow
 
-The expected workflow is:
+The recommended workflow entry point is:
+
+1. `orchestrator`
+
+The expected stage order coordinated by `orchestrator` is:
 
 1. `feature-partner`
 2. `architect`
@@ -51,6 +58,18 @@ The expected workflow is:
 Agents MAY be skipped only when the user explicitly requests a different flow or the target project already contains the required artifact for that stage.
 
 ## Stage Requirements
+
+### `orchestrator`
+
+`orchestrator` MUST coordinate the workflow from the current repository state and the user's request.
+
+Rules:
+
+- It MUST inspect the current workflow artifacts before choosing the next stage.
+- It MUST enforce workflow handoffs and approval gates defined in this document.
+- It MUST own workflow transitions and status updates across documents.
+- It MUST delegate stage-specific work to the relevant specialist agent instead of replacing that specialist's role.
+- It MAY route the user directly to a specific stage when the user explicitly requests it, but it MUST surface workflow risks or missing prerequisites.
 
 ### `feature-partner`
 
@@ -66,6 +85,7 @@ Rules:
 - It MUST challenge weak assumptions and identify missing constraints.
 - It MUST NOT write implementation code.
 - It MUST NOT make final product decisions on behalf of the user.
+- It MUST present the design document to the user for review and MUST NOT consider the stage complete without explicit user approval.
 
 ### `architect`
 
@@ -80,7 +100,7 @@ Rules:
 - It MUST preserve approved feature decisions unless the user explicitly changes them.
 - It MUST keep the design as simple as possible.
 - It MUST NOT write implementation code.
-- It MUST update the feature design status to `architectured` when the architecture document is complete.
+- It MUST present the architecture document to the user for review and MUST NOT consider the stage complete without explicit user approval.
 
 ### `acceptance-test-creator`
 
@@ -88,11 +108,11 @@ Rules:
 
 Required output:
 
-- one or more `.feature` files in this repository
+- one or more `.feature` files in the consuming project
 
 Rules:
 
-- It MUST inspect this repository for the expected `.feature` location before writing files.
+- It MUST inspect the target project for the expected `.feature` location before writing files.
 - If that location is not clear, it MUST ask the user.
 - It MUST reuse existing step wording when possible.
 - It MUST NOT implement step definitions.
@@ -167,7 +187,7 @@ If an agent references a different architecture path, that reference is invalid 
 - Agents MUST prefer updating existing artifacts over creating duplicates.
 - Agents MUST preserve traceability between design, architecture, tests, and implementation.
 - Agents MUST ask the user when requirements are ambiguous, conflicting, or missing.
-- Agents MUST NOT assume a framework, stack, or folder layout that does not exist in this repository.
+- Agents MUST NOT assume a framework, stack, or folder layout that does not exist in the target repository.
 - Agents MUST keep outputs concrete, minimal, and actionable.
 - Agents SHOULD call out risks, trade-offs, and open questions explicitly.
 
@@ -181,6 +201,7 @@ The feature is ready for architecture only when:
 - functional requirements are stated
 - out-of-scope items are explicit
 - major edge cases are identified
+- the design document has explicit user approval
 
 ### Architecture -> Acceptance
 
@@ -189,6 +210,7 @@ The feature is ready for acceptance test design only when:
 - components and boundaries are clear
 - business rules are explicit
 - data and integration impact are described where relevant
+- the architecture document has explicit user approval
 
 ### Acceptance -> Implementation
 
@@ -211,6 +233,7 @@ The feature is ready for review only when:
 Feature design documents MAY use these states when applicable:
 
 - `draft`
+- `user-waiting-approval`
 - `architectured`
 - `acceptance-ready`
 - `bdd-completed`
@@ -220,18 +243,21 @@ Feature design documents MAY use these states when applicable:
 Architecture design documents MAY use these states when applicable:
 
 - `draft`
+- `user-waiting-approval`
 - `in-progress`
-- `done`
+- `completed`
 
 Agents MUST use the existing documented states instead of inventing new ones unless the user explicitly changes the workflow.
 
+Workflow status transitions are coordinated by `orchestrator`, not by specialist agents.
+
 ## Repository Limitations
 
-This document does not guarantee that every operational detail is already documented in the repository.
+Because this repository is a template:
 
 - test commands are not defined here
 - code quality tools are not defined here
 - deployment processes are not defined here
 - implementation paths are not defined here
 
-Agents MUST derive those details from the existing codebase, project documentation, or the user instead of guessing.
+Agents working in a consuming project MUST derive those details from that project instead of this repository.

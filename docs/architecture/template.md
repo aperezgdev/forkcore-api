@@ -1,7 +1,7 @@
 ---
 name: feature-name-architecture
 tags: [event, serverless]
-status: in-progress (draft, in-progress, done)
+status: in-progress (draft, user-waiting-approval, in-progress, completed)
 date-created: 2024-06-01
 ---
 
