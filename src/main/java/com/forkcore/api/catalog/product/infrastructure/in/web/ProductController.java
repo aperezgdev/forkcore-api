@@ -1,14 +1,15 @@
 package com.forkcore.api.catalog.product.infrastructure.in.web;
 
 import com.forkcore.api.catalog.product.application.ProductCreator;
+import com.forkcore.api.catalog.product.application.ProductDeleter;
 import com.forkcore.api.catalog.product.application.ProductRetriever;
 import com.forkcore.api.catalog.product.application.ProductUpdater;
 import com.forkcore.api.shared.domain.FieldUpdate;
-import com.forkcore.api.shared.domain.Id;
 import com.forkcore.api.shared.domain.error.NotFoundError;
 import java.net.URI;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,22 +26,25 @@ public class ProductController {
 	private final ProductCreator productCreator;
 	private final ProductRetriever productRetriever;
 	private final ProductUpdater productUpdater;
+	private final ProductDeleter productDeleter;
 
 	public ProductController(
 		ProductCreator productCreator,
 		ProductRetriever productRetriever,
-		ProductUpdater productUpdater
+		ProductUpdater productUpdater,
+		ProductDeleter productDeleter
 	) {
 		this.productCreator = productCreator;
 		this.productRetriever = productRetriever;
 		this.productUpdater = productUpdater;
+		this.productDeleter = productDeleter;
 	}
 
 	@GetMapping
 	public ResponseEntity<List<ProductResponse>> get(@RequestParam(required = false) String status) {
 		var result = productRetriever.run(status);
 		if (result.isFailure()) {
-			throw ProductErrorHandler.invalidProduct(result.error());
+			return ResponseEntity.badRequest().build();
 		}
 
 		var response = result.value().stream().map(ProductResponse::from).toList();
@@ -56,7 +60,7 @@ public class ProductController {
 			request.status()
 		);
 		if (result.isFailure()) {
-			throw ProductErrorHandler.invalidProduct(result.error());
+			return ResponseEntity.badRequest().build();
 		}
 
 		var response = ProductResponse.from(result.value());
@@ -69,7 +73,7 @@ public class ProductController {
 		@RequestBody UpdateProductRequest request
 	) {
 		var result = productUpdater.run(
-			Id.fromString(id),
+			id,
 			toFieldUpdate(request.name()),
 			toFieldUpdate(request.description()),
 			toFieldUpdate(request.price()),
@@ -77,12 +81,25 @@ public class ProductController {
 		);
 		if (result.isFailure()) {
 			if (result.error() instanceof NotFoundError) {
-				throw ProductErrorHandler.productNotFound(result.error());
+				return ResponseEntity.notFound().build();
 			}
-			throw ProductErrorHandler.invalidProduct(result.error());
+			return ResponseEntity.badRequest().build();
 		}
 
 		return ResponseEntity.ok(ProductResponse.from(result.value()));
+	}
+
+	@DeleteMapping("/{id}")
+	public ResponseEntity<Void> delete(@PathVariable String id) {
+		var result = productDeleter.run(id);
+		if (result.isFailure()) {
+			if (result.error() instanceof NotFoundError) {
+				return ResponseEntity.notFound().build();
+			}
+			return ResponseEntity.badRequest().build();
+		}
+
+		return ResponseEntity.noContent().build();
 	}
 
 	private static <T> FieldUpdate<T> toFieldUpdate(org.openapitools.jackson.nullable.JsonNullable<T> jsonNullable) {

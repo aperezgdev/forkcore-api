@@ -71,5 +71,10 @@ class ProductRetrieverTest {
 		public Optional<Product> findById(Id id) {
 			return products.stream().filter(product -> product.id().equals(id)).findFirst();
 		}
+
+		@Override
+		public void delete(Product product) {
+			throw new UnsupportedOperationException();
+		}
 	}
 }

@@ -3,12 +3,12 @@ package com.forkcore.api.catalog.product.infrastructure.in.web;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.forkcore.api.catalog.product.application.ProductCreator;
+import com.forkcore.api.catalog.product.application.ProductDeleter;
 import com.forkcore.api.catalog.product.application.ProductRetriever;
 import com.forkcore.api.catalog.product.application.ProductUpdater;
 import com.forkcore.api.catalog.product.domain.Product;
 import com.forkcore.api.catalog.product.domain.ProductRepository;
 import com.forkcore.api.shared.domain.Id;
-import com.forkcore.api.shared.domain.error.CompositeValidationError;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,8 @@ class ProductControllerTest {
 		var controller = new ProductController(
 			new ProductCreator(repository),
 			new ProductRetriever(repository),
-			new ProductUpdater(repository)
+			new ProductUpdater(repository),
+			new ProductDeleter(repository)
 		);
 		var request = new CreateProductRequest("Burger", "Classic burger", new BigDecimal("12.50"), null);
 
@@ -46,18 +47,15 @@ class ProductControllerTest {
 		var controller = new ProductController(
 			new ProductCreator(repository),
 			new ProductRetriever(repository),
-			new ProductUpdater(repository)
+			new ProductUpdater(repository),
+			new ProductDeleter(repository)
 		);
 
-		try {
-			controller.create(new CreateProductRequest("Burger", "Classic burger", new BigDecimal("-1"), null));
-		} catch (ProductErrorHandler.InvalidProductException exception) {
-			var problem = new ProductErrorHandler().handleInvalidProductException(exception);
-			assertThat(problem.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-			assertThat(problem.getTitle()).isEqualTo("Invalid product");
-			assertThat(problem.getDetail()).isEqualTo("validation errors occurred");
-			assertThat(problem.getProperties()).containsKey("errors");
-		}
+		var response = controller.create(
+			new CreateProductRequest("Burger", "Classic burger", new BigDecimal("-1"), null)
+		);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 	}
 
 	@Test
@@ -68,7 +66,8 @@ class ProductControllerTest {
 		var controller = new ProductController(
 			new ProductCreator(repository),
 			new ProductRetriever(repository),
-			new ProductUpdater(repository)
+			new ProductUpdater(repository),
+			new ProductDeleter(repository)
 		);
 
 		var response = controller.get(null);
@@ -86,7 +85,8 @@ class ProductControllerTest {
 		var controller = new ProductController(
 			new ProductCreator(repository),
 			new ProductRetriever(repository),
-			new ProductUpdater(repository)
+			new ProductUpdater(repository),
+			new ProductDeleter(repository)
 		);
 
 		var response = controller.get("inactive");
@@ -102,7 +102,8 @@ class ProductControllerTest {
 		var controller = new ProductController(
 			new ProductCreator(repository),
 			new ProductRetriever(repository),
-			new ProductUpdater(repository)
+			new ProductUpdater(repository),
+			new ProductDeleter(repository)
 		);
 
 		var response = controller.get(null);
@@ -117,17 +118,13 @@ class ProductControllerTest {
 		var controller = new ProductController(
 			new ProductCreator(repository),
 			new ProductRetriever(repository),
-			new ProductUpdater(repository)
+			new ProductUpdater(repository),
+			new ProductDeleter(repository)
 		);
 
-		try {
-			controller.get("archived");
-		} catch (ProductErrorHandler.InvalidProductException exception) {
-			var problem = new ProductErrorHandler().handleInvalidProductException(exception);
-			assertThat(problem.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-			assertThat(problem.getTitle()).isEqualTo("Invalid product");
-			assertThat(problem.getDetail()).isEqualTo("product status is invalid");
-		}
+		var response = controller.get("archived");
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 	}
 
 	@Test
@@ -136,19 +133,15 @@ class ProductControllerTest {
 		var controller = new ProductController(
 			new ProductCreator(repository),
 			new ProductRetriever(repository),
-			new ProductUpdater(repository)
+			new ProductUpdater(repository),
+			new ProductDeleter(repository)
 		);
 
-		try {
-			controller.create(new CreateProductRequest("   ", "Classic burger", new BigDecimal("-1"), null));
-		} catch (ProductErrorHandler.InvalidProductException exception) {
-			var problem = new ProductErrorHandler().handleInvalidProductException(exception);
-			assertThat(problem.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-			assertThat(problem.getTitle()).isEqualTo("Invalid product");
-			assertThat(problem.getDetail()).isEqualTo("validation errors occurred");
-			assertThat(problem.getProperties()).containsKey("errors");
-			assertThat(exception.error()).isInstanceOf(CompositeValidationError.class);
-		}
+		var response = controller.create(
+			new CreateProductRequest("   ", "Classic burger", new BigDecimal("-1"), null)
+		);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 	}
 
 	@Test
@@ -165,7 +158,8 @@ class ProductControllerTest {
 		var controller = new ProductController(
 			new ProductCreator(repository),
 			new ProductRetriever(repository),
-			new ProductUpdater(repository)
+			new ProductUpdater(repository),
+			new ProductDeleter(repository)
 		);
 		var request = new UpdateProductRequest(
 			JsonNullable.of("Burger deluxe"),
@@ -200,7 +194,8 @@ class ProductControllerTest {
 		var controller = new ProductController(
 			new ProductCreator(repository),
 			new ProductRetriever(repository),
-			new ProductUpdater(repository)
+			new ProductUpdater(repository),
+			new ProductDeleter(repository)
 		);
 		var request = new UpdateProductRequest(
 			JsonNullable.undefined(),
@@ -222,7 +217,8 @@ class ProductControllerTest {
 		var controller = new ProductController(
 			new ProductCreator(repository),
 			new ProductRetriever(repository),
-			new ProductUpdater(repository)
+			new ProductUpdater(repository),
+			new ProductDeleter(repository)
 		);
 		var request = new UpdateProductRequest(
 			JsonNullable.of("Burger deluxe"),
@@ -231,14 +227,9 @@ class ProductControllerTest {
 			JsonNullable.undefined()
 		);
 
-		try {
-			controller.update("99999999-9999-9999-9999-999999999999", request);
-		} catch (ProductErrorHandler.ProductNotFoundException exception) {
-			var problem = new ProductErrorHandler().handleProductNotFoundException(exception);
-			assertThat(problem.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
-			assertThat(problem.getTitle()).isEqualTo("Product not found");
-			assertThat(problem.getDetail()).contains("99999999-9999-9999-9999-999999999999");
-		}
+		var response = controller.update("99999999-9999-9999-9999-999999999999", request);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 	}
 
 	@Test
@@ -256,7 +247,8 @@ class ProductControllerTest {
 		var controller = new ProductController(
 			new ProductCreator(repository),
 			new ProductRetriever(repository),
-			new ProductUpdater(repository)
+			new ProductUpdater(repository),
+			new ProductDeleter(repository)
 		);
 		var request = new UpdateProductRequest(
 			JsonNullable.of("   "),
@@ -265,13 +257,93 @@ class ProductControllerTest {
 			JsonNullable.undefined()
 		);
 
-		try {
-			controller.update("11111111-1111-1111-1111-111111111111", request);
-		} catch (ProductErrorHandler.InvalidProductException exception) {
-			var problem = new ProductErrorHandler().handleInvalidProductException(exception);
-			assertThat(problem.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-			assertThat(problem.getTitle()).isEqualTo("Invalid product");
-		}
+		var response = controller.update("11111111-1111-1111-1111-111111111111", request);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+	}
+
+	@Test
+	void shouldDeleteExistingProductAndReturnNoContent() {
+		var repository = new InMemoryRepository();
+		repository.save(
+			Product.fromPrimitives(
+				"11111111-1111-1111-1111-111111111111",
+				"Burger",
+				"Classic burger",
+				new BigDecimal("12.50"),
+				"active"
+			)
+		);
+		var controller = new ProductController(
+			new ProductCreator(repository),
+			new ProductRetriever(repository),
+			new ProductUpdater(repository),
+			new ProductDeleter(repository)
+		);
+
+		var response = controller.delete("11111111-1111-1111-1111-111111111111");
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		assertThat(response.getBody()).isNull();
+	}
+
+	@Test
+	void shouldReturnNotFoundWhenDeletingProductThatDoesNotExist() {
+		var repository = new InMemoryRepository();
+		var controller = new ProductController(
+			new ProductCreator(repository),
+			new ProductRetriever(repository),
+			new ProductUpdater(repository),
+			new ProductDeleter(repository)
+		);
+
+		var response = controller.delete("99999999-9999-9999-9999-999999999999");
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+		assertThat(response.getBody()).isNull();
+	}
+
+	@Test
+	void shouldReturnBadRequestWhenDeletingWithMalformedId() {
+		var repository = new InMemoryRepository();
+		var controller = new ProductController(
+			new ProductCreator(repository),
+			new ProductRetriever(repository),
+			new ProductUpdater(repository),
+			new ProductDeleter(repository)
+		);
+
+		var response = controller.delete("not-a-uuid");
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(response.getBody()).isNull();
+	}
+
+	@Test
+	void shouldReturnNoContentThenNotFoundOnConsecutiveDeletes() {
+		var repository = new InMemoryRepository();
+		repository.save(
+			Product.fromPrimitives(
+				"11111111-1111-1111-1111-111111111111",
+				"Burger",
+				"Classic burger",
+				new BigDecimal("12.50"),
+				"active"
+			)
+		);
+		var controller = new ProductController(
+			new ProductCreator(repository),
+			new ProductRetriever(repository),
+			new ProductUpdater(repository),
+			new ProductDeleter(repository)
+		);
+
+		var firstResponse = controller.delete("11111111-1111-1111-1111-111111111111");
+		assertThat(firstResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+		var secondResponse = controller.delete("11111111-1111-1111-1111-111111111111");
+		assertThat(secondResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+		assertThat(secondResponse.getBody()).isNull();
 	}
 
 	private static final class InMemoryRepository implements ProductRepository {
@@ -297,6 +369,11 @@ class ProductControllerTest {
 		@Override
 		public Optional<Product> findById(Id id) {
 			return products.stream().filter(product -> product.id().equals(id)).findFirst();
+		}
+
+		@Override
+		public void delete(Product product) {
+			products.removeIf(existing -> existing.id().equals(product.id()));
 		}
 	}
 }

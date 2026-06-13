@@ -13,4 +13,6 @@ public interface ProductRepository {
 	List<Product> findByStatus(String status);
 
 	Optional<Product> findById(Id id);
+
+	void delete(Product product);
 }

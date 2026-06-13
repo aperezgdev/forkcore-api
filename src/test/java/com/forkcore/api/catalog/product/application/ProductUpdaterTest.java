@@ -31,7 +31,7 @@ class ProductUpdaterTest {
 		var updater = new ProductUpdater(repository);
 
 		var result = updater.run(
-			Id.fromString("11111111-1111-1111-1111-111111111111"),
+			"11111111-1111-1111-1111-111111111111",
 			FieldUpdate.of("Burger deluxe"),
 			FieldUpdate.absent(),
 			FieldUpdate.absent(),
@@ -60,7 +60,7 @@ class ProductUpdaterTest {
 		var updater = new ProductUpdater(repository);
 
 		var result = updater.run(
-			Id.fromString("11111111-1111-1111-1111-111111111111"),
+			"11111111-1111-1111-1111-111111111111",
 			FieldUpdate.absent(),
 			FieldUpdate.absent(),
 			FieldUpdate.absent(),
@@ -88,7 +88,7 @@ class ProductUpdaterTest {
 		var updater = new ProductUpdater(repository);
 
 		var result = updater.run(
-			Id.fromString("11111111-1111-1111-1111-111111111111"),
+			"11111111-1111-1111-1111-111111111111",
 			FieldUpdate.absent(),
 			FieldUpdate.of((String) null),
 			FieldUpdate.absent(),
@@ -113,7 +113,7 @@ class ProductUpdaterTest {
 		var updater = new ProductUpdater(repository);
 
 		var result = updater.run(
-			Id.fromString("11111111-1111-1111-1111-111111111111"),
+			"11111111-1111-1111-1111-111111111111",
 			FieldUpdate.absent(),
 			FieldUpdate.of(""),
 			FieldUpdate.absent(),
@@ -138,14 +138,14 @@ class ProductUpdaterTest {
 		var updater = new ProductUpdater(repository);
 
 		updater.run(
-			Id.fromString("11111111-1111-1111-1111-111111111111"),
+			"11111111-1111-1111-1111-111111111111",
 			FieldUpdate.of("Burger deluxe"),
 			FieldUpdate.absent(),
 			FieldUpdate.absent(),
 			FieldUpdate.absent()
 		);
 
-		var persisted = repository.findById(Id.fromString("11111111-1111-1111-1111-111111111111"));
+		var persisted = repository.findById(Id.fromStringOrThrow("11111111-1111-1111-1111-111111111111"));
 		assertThat(persisted).isPresent();
 		assertThat(persisted.get().name()).isEqualTo("Burger deluxe");
 	}
@@ -156,7 +156,7 @@ class ProductUpdaterTest {
 		var updater = new ProductUpdater(repository);
 
 		var result = updater.run(
-			Id.fromString("99999999-9999-9999-9999-999999999999"),
+			"99999999-9999-9999-9999-999999999999",
 			FieldUpdate.of("Burger deluxe"),
 			FieldUpdate.absent(),
 			FieldUpdate.absent(),
@@ -182,7 +182,7 @@ class ProductUpdaterTest {
 		var updater = new ProductUpdater(repository);
 
 		var result = updater.run(
-			Id.fromString("11111111-1111-1111-1111-111111111111"),
+			"11111111-1111-1111-1111-111111111111",
 			FieldUpdate.of("   "),
 			FieldUpdate.absent(),
 			FieldUpdate.absent(),
@@ -209,7 +209,7 @@ class ProductUpdaterTest {
 		var updater = new ProductUpdater(repository);
 
 		var result = updater.run(
-			Id.fromString("11111111-1111-1111-1111-111111111111"),
+			"11111111-1111-1111-1111-111111111111",
 			FieldUpdate.absent(),
 			FieldUpdate.absent(),
 			FieldUpdate.of(new BigDecimal("-1.00")),
@@ -243,7 +243,7 @@ class ProductUpdaterTest {
 		var updater = new ProductUpdater(repository);
 
 		var result = updater.run(
-			Id.fromString("11111111-1111-1111-1111-111111111111"),
+			"11111111-1111-1111-1111-111111111111",
 			FieldUpdate.absent(),
 			FieldUpdate.absent(),
 			FieldUpdate.absent(),
@@ -254,6 +254,24 @@ class ProductUpdaterTest {
 		assertThat(result.error()).isEqualTo(
 			new CompositeValidationError(List.of(new ValidationError("status", "product status is invalid")))
 		);
+	}
+
+	@Test
+	void shouldPropagateValidationErrorWhenIdIsMalformed() {
+		var repository = new InMemoryRepository();
+		var updater = new ProductUpdater(repository);
+
+		var result = updater.run(
+			"not-a-uuid",
+			FieldUpdate.of("Burger deluxe"),
+			FieldUpdate.absent(),
+			FieldUpdate.absent(),
+			FieldUpdate.absent()
+		);
+
+		assertThat(result.isFailure()).isTrue();
+		assertThat(result.error()).isInstanceOf(ValidationError.class);
+		assertThat(((ValidationError) result.error()).field()).isEqualTo("id");
 	}
 
 	private static final class InMemoryRepository implements ProductRepository {
@@ -284,6 +302,11 @@ class ProductUpdaterTest {
 		@Override
 		public Optional<Product> findById(Id id) {
 			return products.stream().filter(product -> product.id().equals(id)).findFirst();
+		}
+
+		@Override
+		public void delete(Product product) {
+			products.removeIf(existing -> existing.id().equals(product.id()));
 		}
 	}
 }

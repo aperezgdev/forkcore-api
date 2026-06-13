@@ -37,6 +37,11 @@ public class InMemoryProductRepository implements ProductRepository {
 		return Optional.ofNullable(storage.get(id.asString()));
 	}
 
+	@Override
+	public void delete(Product product) {
+		storage.remove(product.id().asString());
+	}
+
 	public void deleteAll() {
 		storage.clear();
 	}

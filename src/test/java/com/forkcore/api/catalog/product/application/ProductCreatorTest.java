@@ -34,6 +34,11 @@ class ProductCreatorTest {
 			public Optional<Product> findById(Id id) {
 				return Optional.empty();
 			}
+
+			@Override
+			public void delete(Product product) {
+				throw new UnsupportedOperationException();
+			}
 		};
 
 		var creator = new ProductCreator(repository);

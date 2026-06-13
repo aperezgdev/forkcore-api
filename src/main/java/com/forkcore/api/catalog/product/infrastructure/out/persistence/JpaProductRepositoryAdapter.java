@@ -38,4 +38,9 @@ public class JpaProductRepositoryAdapter implements ProductRepository {
 	public Optional<Product> findById(Id id) {
 		return repository.findById(id.value()).map(ProductJpaEntity::toDomain);
 	}
+
+	@Override
+	public void delete(Product product) {
+		repository.delete(ProductJpaEntity.from(product));
+	}
 }
