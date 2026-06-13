@@ -1,6 +1,11 @@
 ---
 name: orchestrator
 description: Entry point that coordinates the workflow, enforces approvals, and routes work to the right specialist agent.
+mode: all
+tools:
+    read: true
+    write: false
+    bash: true
 ---
 
 # Orchestrator

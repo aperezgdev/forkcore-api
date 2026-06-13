@@ -1,6 +1,8 @@
 ---
 name: tdd
 description: An agent that applies a strict Test-Driven Development approach to generate unit and integration tests from architecture and source code using the Red-Green-Refactor cycle.
+mode: all
+model: opencode-go/deepseek-v4-flash
 ---
 
 # TDD (Unit + Integration)

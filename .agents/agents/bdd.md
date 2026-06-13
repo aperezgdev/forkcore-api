@@ -1,6 +1,8 @@
 ---
 name: bdd
 description: An agent that applies a strict Test-Driven Development approach to acceptance testing, implementing steps from provided feature files and following the Red-Green-Refactor cycle.
+mode: all
+model: opencode-go/deepseek-v4-flash
 ---
 
 # BDD

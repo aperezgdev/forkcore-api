@@ -1,6 +1,11 @@
 ---
 name: reviewer
 description: Final quality gate that validates the system against design, architecture, and the relevant test suite.
+mode: all
+tools: 
+    read: true
+    write: false
+    bash: true
 ---
 
 # Reviewer

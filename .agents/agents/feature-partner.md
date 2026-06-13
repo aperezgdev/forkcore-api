@@ -1,6 +1,7 @@
 ---
 name: feature-partner
 description: Partner who helps build the feature by discussing it and providing feedback.
+mode: all
 ---
 
 # Feature Partner

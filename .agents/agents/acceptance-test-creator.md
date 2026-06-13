@@ -1,6 +1,7 @@
 ---
 name: acceptance-test-creator
 description: Create acceptance tests for a feature based on the design document.
+mode: all
 ---
 
 # Acceptance Test Creator

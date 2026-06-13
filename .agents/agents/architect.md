@@ -1,6 +1,11 @@
 ---
 name: architect
 description: Transform a feature design into an architectural design document.
+mode: all
+tools:
+    read: true
+    write: false
+    bash: true
 ---
 
 # Architect
