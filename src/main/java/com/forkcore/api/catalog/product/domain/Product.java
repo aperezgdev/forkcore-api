@@ -73,24 +73,6 @@ public final class Product {
 		);
 	}
 
-	/**
-	 * Applies a partial update to the product preserving the aggregate invariants.
-	 * <p>
-	 * Only the fields that are explicitly marked as present in the supplied
-	 * {@link FieldUpdate} instances are considered for change. Omitted fields keep
-	 * their current value. {@code name}, {@code price} and {@code status} are
-	 * validated using the same value-object factories used by {@link #create(String, String, java.math.BigDecimal, String)}.
-	 * {@code description} is allowed to be cleared (set to {@code null}) or to an
-	 * empty string.
-	 *
-	 * @param name change request for the product name.
-	 * @param description change request for the product description.
-	 * @param price change request for the product price.
-	 * @param status change request for the product status.
-	 * @return a successful {@link Result} holding the updated product, or a failed
-	 *         {@link Result} carrying a {@link CompositeValidationError} when at
-	 *         least one provided value is invalid.
-	 */
 	public Result<Product> updateWith(
 		FieldUpdate<String> name,
 		FieldUpdate<String> description,
