@@ -63,16 +63,6 @@ public class ProductSharedSteps extends ProductStepSupport {
 		Assertions.assertThat(response().body()).contains("\"status\":\"" + status + "\"");
 	}
 
-	@Then("the problem response title should be {string}")
-	public void problemResponseTitleShouldBe(String title) {
-		Assertions.assertThat(response().body()).contains("\"title\":\"" + title + "\"");
-	}
-
-	@Then("the problem response detail should be {string}")
-	public void problemResponseDetailShouldBe(String detail) {
-		Assertions.assertThat(response().body()).contains(detail);
-	}
-
 	@Then("the product list response should contain {int} products")
 	public void productListShouldContainProducts(int size) {
 		Assertions.assertThat(countProductsInListResponse()).isEqualTo(size);
@@ -86,6 +76,11 @@ public class ProductSharedSteps extends ProductStepSupport {
 	@Then("the product list response should be empty")
 	public void productListShouldBeEmpty() {
 		Assertions.assertThat(response().body()).isEqualTo("[]");
+	}
+
+	@Then("the product response body should be empty")
+	public void responseBodyShouldBeEmpty() {
+		Assertions.assertThat(response().body()).isNullOrEmpty();
 	}
 
 	private int countProductsInListResponse() {

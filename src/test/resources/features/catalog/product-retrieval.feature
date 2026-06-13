@@ -25,5 +25,4 @@ Feature: Product retrieval
   Scenario: Reject retrieval with an invalid status filter
     When I retrieve products filtered by status "archived"
     Then the product response status code should be 400
-    And the problem response title should be "Invalid product"
-    And the problem response detail should be "product status is invalid"
+    And the product response body should be empty

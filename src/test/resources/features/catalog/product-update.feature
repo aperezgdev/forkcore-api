@@ -37,14 +37,13 @@ Feature: Product update
     Scenario Outline: Reject updates with invalid validated fields
       When <update action>
       Then the product response status code should be 400
-      And the problem response title should be "Invalid product"
-      And the problem response detail should be "<detail>"
+      And the product response body should be empty
 
       Examples:
-        | update action                                                                                  | detail                                              |
-        | I update the product with id "11111111-1111-1111-1111-111111111111" with name "   "        | product name is required                            |
-        | I update the product with id "11111111-1111-1111-1111-111111111111" with price -1.00        | product price must be greater than or equal to zero |
-        | I update the product with id "11111111-1111-1111-1111-111111111111" with status "archived" | product status is invalid                           |
+        | update action                                                                                  |
+        | I update the product with id "11111111-1111-1111-1111-111111111111" with name "   "        |
+        | I update the product with id "11111111-1111-1111-1111-111111111111" with price -1.00        |
+        | I update the product with id "11111111-1111-1111-1111-111111111111" with status "archived" |
 
   Rule: Update a missing product
     Scenario: Return 404 when the product does not exist

@@ -65,7 +65,7 @@ public final class Product {
 		String status
 	) {
 		return new Product(
-			Id.fromString(id),
+			Id.fromStringOrThrow(id),
 			new ProductName(name),
 			new ProductDescription(description),
 			new ProductPrice(price),

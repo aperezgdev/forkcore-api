@@ -19,15 +19,21 @@ public class ProductUpdater {
 	}
 
 	public Result<Product> run(
-		Id id,
+		String id,
 		FieldUpdate<String> name,
 		FieldUpdate<String> description,
 		FieldUpdate<BigDecimal> price,
 		FieldUpdate<String> status
 	) {
-		var existing = productRepository.findById(id);
+		var idResult = Id.from(id);
+		if (idResult.isFailure()) {
+			return Result.failure(idResult.error());
+		}
+
+		var resolvedId = idResult.value();
+		var existing = productRepository.findById(resolvedId);
 		if (existing.isEmpty()) {
-			return Result.failure(new NotFoundError("Product", id.asString()));
+			return Result.failure(new NotFoundError("Product", resolvedId.asString()));
 		}
 
 		var updated = existing.get().updateWith(name, description, price, status);

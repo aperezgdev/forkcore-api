@@ -60,7 +60,7 @@ public abstract class ProductStepSupport {
 			constructor.setAccessible(true);
 
 			return constructor.newInstance(
-				Id.fromString(id),
+				Id.fromStringOrThrow(id),
 				validatedName(name),
 				ProductDescription.from(description),
 				validatedPrice(price),

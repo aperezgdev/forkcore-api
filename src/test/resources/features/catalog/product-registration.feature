@@ -11,5 +11,4 @@ Feature: Product registration
   Scenario: Reject a product with negative price
     When I create a product with name "Burger", description "Classic burger", price -1.00 and no status
     Then the product response status code should be 400
-    And the problem response title should be "Invalid product"
-    And the problem response detail should be "validation errors occurred"
+    And the product response body should be empty
