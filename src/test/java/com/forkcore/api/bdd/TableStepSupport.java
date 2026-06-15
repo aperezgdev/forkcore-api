@@ -37,4 +37,9 @@ public abstract class TableStepSupport {
 		var result = Table.create(code, capacity, location, status);
 		tableRepository.save(result.value());
 	}
+
+	protected void saveTableWithId(String id, String code, int capacity, String location, String status) {
+		var table = Table.fromPrimitives(id, code, capacity, location, status);
+		tableRepository.save(table);
+	}
 }

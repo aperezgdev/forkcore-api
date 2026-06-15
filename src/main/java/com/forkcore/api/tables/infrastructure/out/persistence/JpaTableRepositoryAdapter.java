@@ -1,5 +1,6 @@
 package com.forkcore.api.tables.infrastructure.out.persistence;
 
+import com.forkcore.api.shared.domain.Id;
 import com.forkcore.api.tables.domain.Table;
 import com.forkcore.api.tables.domain.TableRepository;
 import com.forkcore.api.tables.domain.vo.TableCode;
@@ -24,5 +25,15 @@ public class JpaTableRepositoryAdapter implements TableRepository {
 	@Override
 	public Optional<Table> findByCode(TableCode code) {
 		return repository.findByCode(code.value()).map(TableJpaEntity::toDomain);
+	}
+
+	@Override
+	public Optional<Table> findById(Id id) {
+		return repository.findById(id.value()).map(TableJpaEntity::toDomain);
+	}
+
+	@Override
+	public void delete(Table table) {
+		repository.delete(TableJpaEntity.from(table));
 	}
 }

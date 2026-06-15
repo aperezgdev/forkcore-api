@@ -2,6 +2,7 @@ package com.forkcore.api.tables.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.forkcore.api.shared.domain.Id;
 import com.forkcore.api.shared.domain.error.CompositeValidationError;
 import com.forkcore.api.shared.domain.error.ConflictError;
 import com.forkcore.api.shared.domain.error.ValidationError;
@@ -9,6 +10,7 @@ import com.forkcore.api.tables.domain.Table;
 import com.forkcore.api.tables.domain.TableRepository;
 import com.forkcore.api.tables.domain.vo.TableCode;
 import com.forkcore.api.tables.infrastructure.out.persistence.InMemoryTableRepository;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -39,6 +41,16 @@ class TableCreatorTest {
 			@Override
 			public Optional<Table> findByCode(TableCode code) {
 				throw new AssertionError("findByCode should not be called");
+			}
+
+			@Override
+			public Optional<Table> findById(Id id) {
+				throw new AssertionError("findById should not be called");
+			}
+
+			@Override
+			public void delete(Table table) {
+				throw new AssertionError("delete should not be called");
 			}
 		};
 		var creator = new TableCreator(repository);

@@ -1,12 +1,15 @@
 package com.forkcore.api.tables.infrastructure.in.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.forkcore.api.tables.application.TableCreator;
+import com.forkcore.api.tables.application.TableDeleter;
 import com.forkcore.api.tables.domain.Table;
 import com.forkcore.api.tables.infrastructure.out.persistence.InMemoryTableRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +20,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 class TableControllerTest {
 
 	private final InMemoryTableRepository repository = new InMemoryTableRepository();
-	private final TableController controller = new TableController(new TableCreator(repository));
+	private final TableDeleter tableDeleter = new TableDeleter(repository);
+	private final TableController controller = new TableController(new TableCreator(repository), tableDeleter);
 	private final ObjectMapper mapper = new ObjectMapper();
 
 	@BeforeEach
@@ -155,5 +159,41 @@ class TableControllerTest {
 			.andExpect(jsonPath("$.errors.length()").value(1))
 			.andExpect(jsonPath("$.errors[0].field").value("code"))
 			.andExpect(jsonPath("$.errors[0].message").value("table code already exists"));
+	}
+
+	@Test
+	void deleteReturns204WithEmptyBody() throws Exception {
+		var table = Table.fromPrimitives(
+			"11111111-1111-1111-1111-111111111111",
+			"T-01",
+			4,
+			"Terraza",
+			"available"
+		);
+		repository.save(table);
+
+		var mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+
+		mockMvc.perform(delete("/tables/11111111-1111-1111-1111-111111111111"))
+			.andExpect(status().isNoContent())
+			.andExpect(content().string(""));
+	}
+
+	@Test
+	void deleteReturns404WithEmptyBody() throws Exception {
+		var mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+
+		mockMvc.perform(delete("/tables/99999999-9999-9999-9999-999999999999"))
+			.andExpect(status().isNotFound())
+			.andExpect(content().string(""));
+	}
+
+	@Test
+	void deleteReturns400WithEmptyBody() throws Exception {
+		var mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+
+		mockMvc.perform(delete("/tables/not-a-uuid"))
+			.andExpect(status().isBadRequest())
+			.andExpect(content().string(""));
 	}
 }

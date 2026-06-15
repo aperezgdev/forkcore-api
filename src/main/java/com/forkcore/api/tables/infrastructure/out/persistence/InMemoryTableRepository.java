@@ -1,5 +1,6 @@
 package com.forkcore.api.tables.infrastructure.out.persistence;
 
+import com.forkcore.api.shared.domain.Id;
 import com.forkcore.api.tables.domain.Table;
 import com.forkcore.api.tables.domain.TableRepository;
 import com.forkcore.api.tables.domain.vo.TableCode;
@@ -22,6 +23,18 @@ public class InMemoryTableRepository implements TableRepository {
 		return tables.stream()
 			.filter(table -> table.codeVo().value().equals(code.value()))
 			.findFirst();
+	}
+
+	@Override
+	public Optional<Table> findById(Id id) {
+		return tables.stream()
+			.filter(table -> table.id().equals(id))
+			.findFirst();
+	}
+
+	@Override
+	public void delete(Table table) {
+		tables.removeIf(existing -> existing.id().equals(table.id()));
 	}
 
 	public void deleteAll() {

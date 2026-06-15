@@ -26,6 +26,11 @@ public class TableSharedSteps extends TableStepSupport {
 		saveTable(code, capacity, location, status);
 	}
 
+	@Given("a table exists with id {string}, code {string}, capacity {int}, location {string} and status {string}")
+	public void aTableExistsWithId(String id, String code, int capacity, String location, String status) {
+		saveTableWithId(id, code, capacity, location, status);
+	}
+
 	@Then("the table response status code should be {int}")
 	public void responseStatusCodeShouldBe(int statusCode) {
 		Assertions.assertThat(response().statusCode()).isEqualTo(statusCode);
