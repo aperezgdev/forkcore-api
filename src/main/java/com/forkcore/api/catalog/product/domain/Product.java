@@ -2,10 +2,10 @@ package com.forkcore.api.catalog.product.domain;
 
 import com.forkcore.api.catalog.product.domain.vo.ProductDescription;
 import com.forkcore.api.catalog.product.domain.vo.ProductName;
-import com.forkcore.api.catalog.product.domain.vo.ProductPrice;
 import com.forkcore.api.catalog.product.domain.vo.ProductStatus;
 import com.forkcore.api.shared.domain.FieldUpdate;
 import com.forkcore.api.shared.domain.Id;
+import com.forkcore.api.shared.domain.ProductPrice;
 import com.forkcore.api.shared.domain.error.CompositeValidationError;
 import com.forkcore.api.shared.domain.error.ValidationError;
 import com.forkcore.api.shared.domain.result.Result;
@@ -68,7 +68,7 @@ public final class Product {
 			Id.fromStringOrThrow(id),
 			new ProductName(name),
 			new ProductDescription(description),
-			new ProductPrice(price),
+			new ProductPrice(Id.fromStringOrThrow(id), price),
 			new ProductStatus(status)
 		);
 	}
@@ -120,7 +120,7 @@ public final class Product {
 	}
 
 	public java.math.BigDecimal price() {
-		return price.value();
+		return price.unitPrice();
 	}
 
 	public String status() {
