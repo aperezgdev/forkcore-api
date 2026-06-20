@@ -11,10 +11,14 @@ import com.forkcore.api.shared.domain.error.ValidationError;
 import com.forkcore.api.shared.domain.result.Result;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class OrderCreator {
+
+	private static final Logger LOG = LoggerFactory.getLogger(OrderCreator.class);
 
 	private final OrderRepository orderRepository;
 	private final ProductPriceProvider productPriceProvider;
@@ -25,8 +29,11 @@ public class OrderCreator {
 	}
 
 	public Result<Order> run(List<CreateOrderLineInput> lines, String tableId, String notes) {
+		LOG.info("Order creation requested lines={} tableId={}", lines == null ? 0 : lines.size(), tableId);
+
 		// Delegate null/empty lines validation to Order.create
 		if (lines == null || lines.isEmpty()) {
+			LOG.warn("Order creation failed: reason=no_lines");
 			return Order.create(null, tableId, notes);
 		}
 
@@ -52,14 +59,18 @@ public class OrderCreator {
 		}
 
 		if (!errors.isEmpty()) {
+			LOG.warn("Order creation failed: reason=invalid_lines errors={}", errors.size());
 			return Result.failure(CompositeValidationError.from(errors.toArray(ValidationError[]::new)));
 		}
 
 		var orderResult = Order.create(resolvedLines, tableId, notes);
 		if (orderResult.isFailure()) {
+			LOG.warn("Order creation failed: reason=domain_validation");
 			return orderResult;
 		}
 
-		return Result.success(orderRepository.save(orderResult.value()));
+		var saved = orderRepository.save(orderResult.value());
+		LOG.info("Order created id={} total={}", saved.id().asString(), saved.total());
+		return Result.success(saved);
 	}
 }

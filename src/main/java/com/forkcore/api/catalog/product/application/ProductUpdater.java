@@ -7,10 +7,14 @@ import com.forkcore.api.shared.domain.Id;
 import com.forkcore.api.shared.domain.error.NotFoundError;
 import com.forkcore.api.shared.domain.result.Result;
 import java.math.BigDecimal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ProductUpdater {
+
+	private static final Logger LOG = LoggerFactory.getLogger(ProductUpdater.class);
 
 	private final ProductRepository productRepository;
 
@@ -33,14 +37,18 @@ public class ProductUpdater {
 		var resolvedId = idResult.value();
 		var existing = productRepository.findById(resolvedId);
 		if (existing.isEmpty()) {
+			LOG.debug("Product not found id={}", resolvedId.asString());
 			return Result.failure(new NotFoundError("Product", resolvedId.asString()));
 		}
 
 		var updated = existing.get().updateWith(name, description, price, status);
 		if (updated.isFailure()) {
+			LOG.warn("Product update failed: id={} reason=domain_validation", resolvedId.asString());
 			return updated;
 		}
 
-		return Result.success(productRepository.save(updated.value()));
+		var saved = productRepository.save(updated.value());
+		LOG.info("Product updated id={}", saved.id().asString());
+		return Result.success(saved);
 	}
 }

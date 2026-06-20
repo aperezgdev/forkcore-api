@@ -8,10 +8,14 @@ import com.forkcore.api.shared.domain.error.ConflictError;
 import com.forkcore.api.shared.domain.error.NotFoundError;
 import com.forkcore.api.shared.domain.error.ValidationError;
 import com.forkcore.api.shared.domain.result.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class OrderStatusUpdater {
+
+	private static final Logger LOG = LoggerFactory.getLogger(OrderStatusUpdater.class);
 
 	private final OrderRepository orderRepository;
 
@@ -27,15 +31,20 @@ public class OrderStatusUpdater {
 
 		var orderOpt = orderRepository.findById(id);
 		if (orderOpt.isEmpty()) {
+			LOG.debug("Order not found id={}", id.asString());
 			return Result.failure(new NotFoundError("order", id.asString()));
 		}
 
 		var order = orderOpt.get();
+		var previousStatus = order.status();
 		var changeResult = order.changeStatus(statusResult.value());
 		if (changeResult.isFailure()) {
+			LOG.warn("Order status transition rejected id={} from={} to={}", id.asString(), previousStatus, newStatus);
 			return changeResult;
 		}
 
-		return Result.success(orderRepository.save(order));
+		var saved = orderRepository.save(order);
+		LOG.info("Order status changed id={} from={} to={}", saved.id().asString(), previousStatus, saved.status());
+		return Result.success(saved);
 	}
 }
