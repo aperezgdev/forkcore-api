@@ -16,5 +16,22 @@ services:
       timeout: 5s
       retries: 5
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: forkcore/api:local
+    container_name: forkcore-api
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/forkcore
+      SPRING_DATASOURCE_USERNAME: forkcore
+      SPRING_DATASOURCE_PASSWORD: forkcore
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   postgres-data:

@@ -10,7 +10,7 @@ implementa con tests unitarios, tests de controlador (MockMvc) y tests BDD
       en push y PR. El runner necesita Docker (Testcontainers). Cache de Gradle.
 - [x] 0.2 Limpieza repo: revisar `bin/` (parece artefacto generado) y anadirlo a
       `.gitignore` si procede. Crear `HELP.md` o eliminar la referencia del README.
-- [ ] 0.3 `compose.yaml`: anadir servicio `api` que construya desde el
+- [x] 0.3 `compose.yaml`: anadir servicio `api` que construya desde el
       `Dockerfile` y dependa de `postgres` para despliegue local en un comando.
 
 ## Fase 1 — Observabilidad y docs de API
