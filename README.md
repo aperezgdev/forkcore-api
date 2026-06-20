@@ -144,7 +144,6 @@ Nota: el proyecto esta en una fase muy inicial y todavia no expone funcionalidad
 - `docs/design/feature-template.md`: plantilla para diseno funcional
 - `docs/architecture/template.md`: plantilla para diseno tecnico
 - `AGENTS.md`: flujo de trabajo y reglas del repositorio
-- `HELP.md`: referencias tecnicas generadas en el arranque del proyecto
 
 ### Contribucion
 
@@ -305,7 +304,6 @@ Note: the project is still at a very early stage and does not yet expose impleme
 - `docs/design/feature-template.md`: functional design template
 - `docs/architecture/template.md`: technical design template
 - `AGENTS.md`: repository workflow and operating rules
-- `HELP.md`: generated technical references from project bootstrap
 
 ### Contributing
 
