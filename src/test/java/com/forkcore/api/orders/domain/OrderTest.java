@@ -4,10 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.forkcore.api.orders.domain.vo.OrderStatus;
 import com.forkcore.api.shared.domain.error.CompositeValidationError;
+import com.forkcore.api.shared.domain.error.ConflictError;
 import com.forkcore.api.shared.domain.error.ValidationError;
 import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 
 class OrderTest {
 
@@ -232,5 +236,78 @@ class OrderTest {
 		var result = Order.create(lines, null, null);
 		assertThat(result.isSuccess()).isTrue();
 		assertThat(result.value().lines()).isNotNull();
+	}
+
+	// --- changeStatus tests ---
+
+	private static Order anOrderWithStatus(OrderStatus status) {
+		var lines = List.of(OrderLine.fromPrimitives(
+			"11111111-1111-1111-1111-111111111111",
+			"22222222-2222-2222-2222-222222222222",
+			2,
+			new BigDecimal("10.00")
+		));
+		return Order.fromPrimitives(
+			"33333333-3333-3333-3333-333333333333",
+			status.name(),
+			lines,
+			null,
+			null,
+			new BigDecimal("20.00")
+		);
+	}
+
+	@ParameterizedTest
+	@CsvSource({
+		"pending, in_progress",
+		"pending, cancelled",
+		"in_progress, ready",
+		"in_progress, cancelled",
+		"ready, delivered",
+		"ready, cancelled"
+	})
+	void shouldTransitionToValidTargetStatus(OrderStatus current, OrderStatus target) {
+		var order = anOrderWithStatus(current);
+		var result = order.changeStatus(target);
+
+		assertThat(result.isSuccess()).isTrue();
+		assertThat(result.value().status()).isEqualTo(target);
+		assertThat(result.value()).isSameAs(order);
+	}
+
+	@ParameterizedTest
+	@EnumSource(OrderStatus.class)
+	void shouldReturnSuccessWhenTransitioningToSameState(OrderStatus status) {
+		var order = anOrderWithStatus(status);
+		var result = order.changeStatus(status);
+
+		assertThat(result.isSuccess()).isTrue();
+		assertThat(result.value().status()).isEqualTo(status);
+		assertThat(result.value()).isSameAs(order);
+	}
+
+	@ParameterizedTest
+	@CsvSource({
+		"pending, ready",
+		"pending, delivered",
+		"in_progress, pending",
+		"in_progress, delivered",
+		"ready, in_progress",
+		"ready, pending",
+		"delivered, in_progress",
+		"delivered, ready",
+		"delivered, cancelled",
+		"cancelled, in_progress",
+		"cancelled, ready",
+		"cancelled, delivered",
+		"cancelled, pending"
+	})
+	void shouldRejectInvalidTransition(OrderStatus current, OrderStatus target) {
+		var order = anOrderWithStatus(current);
+		var result = order.changeStatus(target);
+
+		assertThat(result.isFailure()).isTrue();
+		assertThat(result.error()).isInstanceOf(ConflictError.class);
+		assertThat(((ConflictError) result.error()).field()).isEqualTo("order.status.transition");
 	}
 }

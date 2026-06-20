@@ -63,9 +63,9 @@ class OrderStatusTest {
 	}
 
 	@Test
-	void shouldNormalizeCase() {
+	void shouldRejectUpperCase() {
 		var result = OrderStatus.from("PENDING");
-		assertThat(result.isSuccess()).isTrue();
-		assertThat(result.value()).isEqualTo(OrderStatus.pending);
+		assertThat(result.isFailure()).isTrue();
+		assertThat(result.error()).isEqualTo(new ValidationError("status", "invalid order status: PENDING"));
 	}
 }

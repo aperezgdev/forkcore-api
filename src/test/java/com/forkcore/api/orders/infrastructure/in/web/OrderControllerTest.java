@@ -3,6 +3,7 @@ package com.forkcore.api.orders.infrastructure.in.web;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.forkcore.api.orders.application.OrderCreator;
+import com.forkcore.api.orders.application.OrderStatusUpdater;
 import com.forkcore.api.orders.application.input.CreateOrderLineInput;
 import com.forkcore.api.orders.domain.Order;
 import com.forkcore.api.orders.domain.OrderLine;
@@ -43,7 +44,8 @@ class OrderControllerTest {
 		idempotencyStore = new InMemoryIdempotencyKeyStore();
 		fingerprinter = new OrderRequestFingerprinter();
 		var objectMapper = new tools.jackson.databind.ObjectMapper();
-		controller = new OrderController(orderCreator, idempotencyStore, fingerprinter, objectMapper);
+		var orderStatusUpdater = new OrderStatusUpdater(orderRepository);
+		controller = new OrderController(orderCreator, orderStatusUpdater, idempotencyStore, fingerprinter, objectMapper);
 	}
 
 	@Test
@@ -306,6 +308,11 @@ class OrderControllerTest {
 		public Order save(Order order) {
 			storage.put(order.id().asString(), order);
 			return order;
+		}
+
+		@Override
+		public java.util.Optional<Order> findById(Id id) {
+			return java.util.Optional.ofNullable(storage.get(id.asString()));
 		}
 
 		public long count() {

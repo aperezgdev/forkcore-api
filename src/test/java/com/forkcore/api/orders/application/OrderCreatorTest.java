@@ -155,6 +155,11 @@ class OrderCreatorTest {
 			return order;
 		}
 
+		@Override
+		public java.util.Optional<Order> findById(Id id) {
+			return java.util.Optional.ofNullable(storage.get(id.asString()));
+		}
+
 		public long count() {
 			return storage.size();
 		}
