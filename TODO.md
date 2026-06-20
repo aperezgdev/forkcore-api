@@ -16,7 +16,7 @@ implementa con tests unitarios, tests de controlador (MockMvc) y tests BDD
 ## Fase 1 — Observabilidad y docs de API
 
 - [x] 1.1 Actuator: `spring-boot-starter-actuator`, exponer `health` e `info`.
-- [ ] 1.2 OpenAPI: `springdoc-openapi-starter-webmvc` (verificar compatibilidad
+- [x] 1.2 OpenAPI: `springdoc-openapi-starter-webmvc` (verificar compatibilidad
       con Spring Boot 4) para `/openapi.yaml` y Swagger UI.
 - [ ] 1.3 Logging estructurado: configuracion minima consistente con
       `OrderErrorAdvice`.
