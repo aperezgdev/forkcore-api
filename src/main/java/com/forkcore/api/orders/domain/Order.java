@@ -7,15 +7,26 @@ import com.forkcore.api.shared.domain.Id;
 import com.forkcore.api.shared.domain.error.CompositeValidationError;
 import com.forkcore.api.shared.domain.error.ValidationError;
 import com.forkcore.api.shared.domain.result.Result;
+import com.forkcore.api.shared.domain.error.ConflictError;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public final class Order {
 
+	private static final Map<OrderStatus, Set<OrderStatus>> ALLOWED_TRANSITIONS = Map.ofEntries(
+		Map.entry(OrderStatus.pending, Set.of(OrderStatus.in_progress, OrderStatus.cancelled)),
+		Map.entry(OrderStatus.in_progress, Set.of(OrderStatus.ready, OrderStatus.cancelled)),
+		Map.entry(OrderStatus.ready, Set.of(OrderStatus.delivered, OrderStatus.cancelled)),
+		Map.entry(OrderStatus.delivered, Set.of()),
+		Map.entry(OrderStatus.cancelled, Set.of())
+	);
+
 	private final Id id;
-	private final OrderStatus status;
+	private OrderStatus status;
 	private final List<OrderLine> lines;
 	private final Id tableId;
 	private final OrderNotes notes;
@@ -121,5 +132,22 @@ public final class Order {
 
 	public BigDecimal total() {
 		return total;
+	}
+
+	public Result<Order> changeStatus(OrderStatus newStatus) {
+		if (newStatus == this.status) {
+			return Result.success(this);
+		}
+
+		var allowed = ALLOWED_TRANSITIONS.get(this.status);
+		if (allowed == null || !allowed.contains(newStatus)) {
+			return Result.failure(
+				new ConflictError("order.status.transition",
+					"cannot transition from " + this.status.name() + " to " + newStatus.name())
+			);
+		}
+
+		this.status = newStatus;
+		return Result.success(this);
 	}
 }

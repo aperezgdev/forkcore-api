@@ -3,7 +3,9 @@ package com.forkcore.api.orders.infrastructure.out.persistence;
 import com.forkcore.api.orders.domain.Order;
 import com.forkcore.api.orders.domain.OrderLine;
 import com.forkcore.api.orders.domain.OrderRepository;
+import com.forkcore.api.shared.domain.Id;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -20,6 +22,12 @@ public class JpaOrderRepositoryAdapter implements OrderRepository {
 		var entity = toEntity(order);
 		repository.save(entity);
 		return order;
+	}
+
+	@Override
+	public Optional<Order> findById(Id id) {
+		return repository.findWithLinesById(id.value())
+			.map(this::toDomain);
 	}
 
 	private OrderJpaEntity toEntity(Order order) {

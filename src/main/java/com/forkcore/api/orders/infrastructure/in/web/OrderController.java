@@ -2,10 +2,14 @@ package com.forkcore.api.orders.infrastructure.in.web;
 
 import tools.jackson.databind.ObjectMapper;
 import com.forkcore.api.orders.application.OrderCreator;
+import com.forkcore.api.orders.application.OrderStatusUpdater;
 import com.forkcore.api.orders.application.input.CreateOrderLineInput;
 import com.forkcore.api.orders.infrastructure.out.idempotency.IdempotencyEntry;
 import com.forkcore.api.orders.infrastructure.out.idempotency.IdempotencyKeyStore;
+import com.forkcore.api.shared.domain.Id;
 import com.forkcore.api.shared.domain.error.CompositeValidationError;
+import com.forkcore.api.shared.domain.error.ConflictError;
+import com.forkcore.api.shared.domain.error.NotFoundError;
 import com.forkcore.api.shared.domain.error.ValidationError;
 import java.net.URI;
 import java.time.Instant;
@@ -13,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -26,17 +32,20 @@ public class OrderController {
 	private static final int MAX_IDEMPOTENCY_KEY_LENGTH = 255;
 
 	private final OrderCreator orderCreator;
+	private final OrderStatusUpdater orderStatusUpdater;
 	private final IdempotencyKeyStore idempotencyKeyStore;
 	private final OrderRequestFingerprinter fingerprinter;
 	private final ObjectMapper objectMapper;
 
 	public OrderController(
 		OrderCreator orderCreator,
+		OrderStatusUpdater orderStatusUpdater,
 		IdempotencyKeyStore idempotencyKeyStore,
 		OrderRequestFingerprinter fingerprinter,
 		ObjectMapper objectMapper
 	) {
 		this.orderCreator = orderCreator;
+		this.orderStatusUpdater = orderStatusUpdater;
 		this.idempotencyKeyStore = idempotencyKeyStore;
 		this.fingerprinter = fingerprinter;
 		this.objectMapper = objectMapper;
@@ -89,6 +98,35 @@ public class OrderController {
 		}
 
 		return executeCreation(request);
+	}
+
+	@PatchMapping("/{id}/status")
+	public ResponseEntity<?> updateStatus(
+			@PathVariable String id,
+			@RequestBody UpdateOrderStatusRequest body) {
+		var idResult = Id.from(id);
+		if (idResult.isFailure()) {
+			return ResponseEntity.badRequest().build();
+		}
+
+		var result = orderStatusUpdater.run(idResult.value(), body.status());
+
+		if (result.isSuccess()) {
+			return ResponseEntity.ok(OrderResponse.from(result.value()));
+		}
+
+		var error = result.error();
+		if (error instanceof ValidationError || error instanceof CompositeValidationError) {
+			return ResponseEntity.badRequest().build();
+		}
+		if (error instanceof NotFoundError) {
+			return ResponseEntity.notFound().build();
+		}
+		if (error instanceof ConflictError) {
+			return ResponseEntity.status(HttpStatus.CONFLICT).build();
+		}
+
+		return ResponseEntity.internalServerError().build();
 	}
 
 	private ResponseEntity<?> executeCreation(CreateOrderRequest request) {
